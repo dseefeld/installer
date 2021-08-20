@@ -21,7 +21,7 @@
       CloneRepoAndDependentsRecursive;
       CopyTarballContent;
       ">
-
+    
     <PropertyGroup>
       <TarballFileDir>$([System.IO.Path]::GetDirectoryName('$(TarballFilePath)'))</TarballFileDir>
     </PropertyGroup>
@@ -134,6 +134,30 @@
     <Exec
       Command="git submodule update --init --recursive"
       WorkingDirectory="$(TarballRepoSourceDir)" />
+    
+    <ItemGroup>
+      <UnneededGitFiles 
+        Include="$(TarballRepoSourceDir)**/.git/**/*" 
+        Exclude="$(TarballRepoSourceDir)**/.git/HEAD;$(TarballRepoSourceDir)**/.git/config;$(TarballRepoSourceDir)**/.git/modules/**/HEAD"/>
+    </ItemGroup>
+
+    <!-- <Delete Files="@(UnneededGitFiles)" /> -->
+
+    <!-- Remove all git folders to free up tarball space -->
+    <!-- <Exec
+      Command="find . -type d ! -name '.' -exec rm -rf {} +"
+      WorkingDirectory="$(TarballRepoSourceDir).git" />     -->
+    
+    <!-- Remove all git files except 'config' and 'HEAD' -->
+    <!-- <Exec
+      Command="find . -type f ! -name config ! -name HEAD -exec rm -rf {} +"
+      WorkingDirectory="$(TarballRepoSourceDir).git" /> -->
+
+    <!-- Update 'HEAD' to contain just the RepoSha to satisfy sourcelink-->
+    <WriteLinesToFile
+      File="$(TarballRepoSourceDir).git/HEAD"
+      Lines="$(RepoSha)"
+      Overwrite="true" />
 
     <Message Text="--> Done Cloning Repo $(SourceBuildRepoName)" Importance="High" />
 
